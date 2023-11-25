@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import Self
 
-from datasets import formatting, load_dataset
+from datasets import Dataset, DatasetDict, formatting, load_dataset
 from lib import csv_helpers
 
 
@@ -11,7 +10,7 @@ class MoviePlotsDataset:
         self.path_to_csv = self.path_to_data / 'wiki_movie_plots_deduped.csv'
         self.columns = csv_helpers.get_columns_in_csv(self.path_to_csv)
         self.seed = 42
-        self.dataset_dict = None
+        self.dataset_dict = self._load_dataset()
 
     @staticmethod
     def select_genre_and_plot(
@@ -22,8 +21,8 @@ class MoviePlotsDataset:
             'plot': entry['Plot'],
         }
 
-    def load(self) -> Self:
-        self.dataset_dict = (
+    def _load_dataset(self) -> DatasetDict:
+        return (
             load_dataset(
                 'csv', data_files=[str(self.path_to_csv)], split="train"
             )
@@ -31,14 +30,18 @@ class MoviePlotsDataset:
             .remove_columns(self.columns)
             .train_test_split(0.2, seed=self.seed)
         )
-        return self
 
     def save_train_test_split(self) -> None:
-        if self.dataset_dict is None:
-            raise RuntimeError('Dataset not loaded')
         for split, dataset in self.dataset_dict.items():
             dataset.save_to_disk(str(self.path_to_data / f'{split}.hf'))
 
+    def get_train_dataset(self) -> Dataset:
+        return self.dataset_dict['train']
+
+    def get_test_dataset(self) -> Dataset:
+        return self.dataset_dict['test']
+
 
 if __name__ == '__main__':
-    (MoviePlotsDataset().load().save_train_test_split())
+    movie_plots_dataset = MoviePlotsDataset()
+    print(movie_plots_dataset.get_test_dataset()[0])
