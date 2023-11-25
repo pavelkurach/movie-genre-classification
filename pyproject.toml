@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "movie-genre-classification"
+version = "0.1.0"
+description = "Movie genre classification from description"
+authors = ["Pavel Kurach"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^2.1.1"
+transformers = {extras = ["torch"], version = "^4.35.2"}
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 90
+target-version = ["py311"]
+
+[tool.isort]
+src_paths = ["mlproject"]
+profile = "black"
+line_length = 90
+lines_after_imports = 2
