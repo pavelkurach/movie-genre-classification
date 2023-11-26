@@ -3,7 +3,5 @@
 /.mypy_cache/
 *.ipynb
 /.idea/
-/movie_genre_classification/bert-finetuned-sem_eval-english/
-/movie_genre_classification/distilbert-finetuned/
 /models/
-__pycache__
+/movie_genre_classification/__pycache__/
