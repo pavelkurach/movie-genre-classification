@@ -2,7 +2,7 @@
 name = "movie-genre-classification"
 version = "0.1.0"
 description = "Movie genre classification from description"
-authors = ["Pavel Kurach <pavel.kurach.01@gmail.com>"]
+authors = ["Pavel Kurach <pavel.kurach1@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
