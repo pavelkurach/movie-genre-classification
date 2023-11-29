@@ -1,12 +1,13 @@
 from pathlib import Path
 
 from datasets import Dataset, DatasetDict, formatting, load_dataset
-from lib import csv_helpers
+
+from .lib import csv_helpers
 
 
 class MoviePlotsDataset:
     def __init__(self) -> None:
-        self.path_to_data = (Path('..') / 'data').resolve()
+        self.path_to_data = Path('data').resolve()
         self.path_to_csv = self.path_to_data / 'wiki_movie_plots_deduped.csv'
         self.columns = csv_helpers.get_columns_in_csv(self.path_to_csv)
         self.seed = 42
