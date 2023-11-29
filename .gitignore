@@ -5,3 +5,4 @@
 /.idea/
 /models/
 /movie_genre_classification/__pycache__/
+/movie_genre_classification/lib/__pycache__/
