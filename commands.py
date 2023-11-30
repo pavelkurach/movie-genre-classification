@@ -21,7 +21,7 @@ def train(cloud: bool = False) -> None:
 
     split_dataset = MoviePlotsDataset().load()
 
-    genre_classifier = GenreClassifier(pretrained_model_name, 15)
+    genre_classifier = GenreClassifier(pretrained_model_name, 5)
     genre_classifier.train(
         split_dataset, args, cfg.training_arguments.train_classifier_layer_only
     )

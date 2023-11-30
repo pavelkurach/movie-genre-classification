@@ -27,7 +27,7 @@ class GenreClassifier:
         self._tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name)
         self._preprocessor = Preprocessor(self._tokenizer)
         self._genre_encoder = GenreEncoder(n_most_frequent_genres)
-        self._model: Any = None
+        self._model: Any | None = None
         self._trainer: Trainer | None = None
 
     def train(
@@ -59,8 +59,8 @@ class GenreClassifier:
         self._trainer = Trainer(
             self._model,
             args,
-            train_dataset=encoded_dataset["train"].select(range(1000)),
-            eval_dataset=encoded_dataset["test"].select(range(200)),
+            train_dataset=encoded_dataset["train"],
+            eval_dataset=encoded_dataset["test"],
             tokenizer=self._tokenizer,
             data_collator=data_collator,
             compute_metrics=compute_metrics,

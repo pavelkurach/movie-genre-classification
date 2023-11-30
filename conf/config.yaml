@@ -2,4 +2,4 @@ defaults:
   - training_arguments: local
   - _self_
 
-pretrained_model_name: distilbert-base-uncased
+pretrained_model_name: bert-base-uncased
