@@ -13,10 +13,18 @@ class Preprocessor:
 
     def transform(self, split_dataset: DatasetDict) -> DatasetDict:
         return (
-            split_dataset.map(self._lower_and_strip_plot)
-            .map(self._split_genres)
+            split_dataset.map(
+                self._lower_and_strip_plot, desc='Preprocess plot'
+            )
+            .map(
+                self._split_genres,
+                desc='Split genres str',
+            )
             .remove_columns(['genre'])
-            .map(functools.partial(self._tokenize, tokenizer=self.tokenizer))
+            .map(
+                functools.partial(self._tokenize, tokenizer=self.tokenizer),
+                desc='Tokenize',
+            )
         )
 
     @staticmethod

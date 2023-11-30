@@ -20,6 +20,7 @@ class GenreEncoder:
                 self._encode_movie_genre,
                 most_freq_genres=self._most_freq_genres,
             ),
+            desc='Encode genres',
         )
 
     def fit(self, preprocessed_train_dataset: Dataset) -> None:

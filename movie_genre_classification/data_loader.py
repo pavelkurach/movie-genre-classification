@@ -39,7 +39,10 @@ class MoviePlotsDataset:
             load_dataset(
                 'csv', data_files=[str(self.path_to_csv)], split="train"
             )
-            .map(MoviePlotsDataset._select_genre_and_plot)
+            .map(
+                MoviePlotsDataset._select_genre_and_plot,
+                desc='Select relevant columns',
+            )
             .remove_columns(self.columns)
             .train_test_split(0.2, seed=self.seed)
         )
