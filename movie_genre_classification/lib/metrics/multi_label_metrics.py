@@ -11,6 +11,9 @@ def multi_label_metrics(
 ) -> dict[str, float]:
     sigmoid = torch.nn.Sigmoid()
     probs = sigmoid(torch.Tensor(predictions))
+    max_ = torch.max(probs, dim=-1).values.unsqueeze(-1)
+    min_ = torch.min(probs, dim=-1).values.unsqueeze(-1)
+    probs = (probs - min_) / (max_ - min_)
     y_pred = np.zeros(probs.shape)
     y_pred[np.where(probs >= threshold)] = 1
     y_true = labels

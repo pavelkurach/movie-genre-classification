@@ -15,12 +15,22 @@ class GenreEncoder:
     def transform(self, preprocessed_dataset: DatasetDict) -> DatasetDict:
         if self._most_freq_genres is None:
             raise RuntimeError("Run .fit() first.")
-        return preprocessed_dataset.map(
-            functools.partial(
-                self._encode_movie_genre,
-                most_freq_genres=self._most_freq_genres,
-            ),
-            desc="Encode genres",
+        return (
+            preprocessed_dataset.map(
+                functools.partial(
+                    self._clean_genres,
+                    most_freq_genres=self._most_freq_genres,
+                ),
+                desc="Clean genres",
+            )
+            .filter(lambda movie: len(movie["genres"]) > 0)
+            .map(
+                functools.partial(
+                    self._encode_movie_genre,
+                    most_freq_genres=self._most_freq_genres,
+                ),
+                desc="Encode genres",
+            )
         )
 
     def fit(self, preprocessed_train_dataset: Dataset) -> None:
@@ -61,6 +71,16 @@ class GenreEncoder:
         else:
             most_freq = most_freq[: self.n_most_freq_genres]
         return most_freq
+
+    @staticmethod
+    def _clean_genres(
+        movie: formatting.formatting.LazyRow, most_freq_genres: list[str]
+    ) -> dict[str, list[float]]:
+        genres_clean = []
+        for genre in movie["genres"]:
+            if genre in most_freq_genres:
+                genres_clean.append(genre)
+        return {"genres": genres_clean}
 
     @staticmethod
     def _encode_movie_genre(

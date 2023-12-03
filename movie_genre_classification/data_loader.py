@@ -6,13 +6,14 @@ from .lib import csv_helpers
 
 
 class MoviePlotsDataset:
-    def __init__(self) -> None:
+    def __init__(self, seed: int = 42) -> None:
         self.path_to_data = Path("data").resolve()
         self.path_to_csv = self.path_to_data / "wiki_movie_plots_deduped.csv"
         self.columns = csv_helpers.get_columns_in_csv(self.path_to_csv)
         self.seed = 42
         self.dataset_dict: DatasetDict | None = None
         self._loaded = False
+        self.seed = seed
 
     def load(self) -> DatasetDict:
         self.dataset_dict = self._load_dataset()
@@ -39,6 +40,7 @@ class MoviePlotsDataset:
             load_dataset(
                 "csv", data_files=[str(self.path_to_csv)], split="train"
             )
+            .shuffle(seed=self.seed)
             .map(
                 MoviePlotsDataset._select_genre_and_plot,
                 desc="Select relevant columns",

@@ -23,4 +23,4 @@ repos:
     rev: '4daa14b'
     hooks:
       - id: mypy
-        args: [--strict, --ignore-missing-imports]
+        args: [--strict, --ignore-missing-imports, --allow-subclassing-any]

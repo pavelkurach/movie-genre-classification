@@ -9,3 +9,5 @@ hf_trainer:
   load_best_model_at_end: True
 
 train_classifier_layer_only: False
+limit_train_dataset: 1
+limit_test_dataset: 1

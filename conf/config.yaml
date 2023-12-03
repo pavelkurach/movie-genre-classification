@@ -2,4 +2,11 @@ defaults:
   - training_arguments: local
   - _self_
 
-pretrained_model_name: bert-base-uncased
+pretrained_model_name: distilbert-base-uncased
+num_genres: 10
+
+seed: 42
+
+mlflow_uri: https://localhost:5000
+mlflow_model_path: models/mlflow/model
+mlflow_loader_path: movie_genre_classification.mlflow_loader
