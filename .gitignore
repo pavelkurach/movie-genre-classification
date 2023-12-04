@@ -7,3 +7,4 @@
 *.pyo
 *.csv
 /mlruns/
+.DS_Store
