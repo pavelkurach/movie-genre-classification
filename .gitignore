@@ -1,9 +1,9 @@
 /venv/
-/data/
 /.mypy_cache/
 *.ipynb
 /.idea/
 /models/
 *.pyc
 *.pyo
+*.csv
 /mlruns/
