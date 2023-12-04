@@ -2,7 +2,7 @@
 
 ## Overview
 
-Movie genre classification project is aimed at developing a model that predicts movie genre based on its plot summary.
+Movie genre classification project is aimed at developing a model that predicts movie genre from its plot summary.
 It is based on [Wikipedia Movie Plots](https://www.kaggle.com/datasets/jrobischon/wikipedia-movie-plots) dataset.
 
 ## Installation
