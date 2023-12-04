@@ -12,8 +12,7 @@ This project requires Python 3.11.
 1. Clone project:
 
 ```shell
-git clone https://github.com/pavelkurach/movie-genre-classification.git
-
+git clone https://github.com/pavelkurach/movie-genre-classification.git &&
 cd movie-genre-classification
 ```
 
@@ -35,10 +34,23 @@ pip install poetry
 poetry install
 ```
 
-5. Pull data from DVC repository:
+## Data 
+
+Pull data from DVC repository:
 
 ```shell
 dvc pull
+```
+
+If you did not succeed to pull data using DVC, you can download it from Kaggle:
+
+```shell
+pip install kaggle &&
+cd data &&
+kaggle datasets download -d jrobischon/wikipedia-movie-plots &&
+unzip wikipedia-movie-plots.zip &&
+rm wikipedia-movie-plots.zip &&
+cd ../
 ```
 
 ## Usage
