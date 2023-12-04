@@ -8,5 +8,5 @@ num_genres: 10
 seed: 42
 
 mlflow_uri: https://localhost:5000
-mlflow_model_path: models/mlflow/model
+mlflow_model_path: models/mlflow/distilbert-base-uncased
 mlflow_loader_path: movie_genre_classification.mlflow_loader

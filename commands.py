@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 import fire
@@ -10,6 +11,7 @@ from transformers import TrainingArguments
 
 
 def train(cloud: bool = False) -> None:
+    subprocess.Popen("dvc pull", shell=True)
     overrides = ["training_arguments=cloud"] if cloud else []
     cfg = compose(config_name="config", overrides=overrides)
 
@@ -70,11 +72,18 @@ def predict(plot: str) -> None:
     print(genre_classifier.predict(plot))
 
 
-def run_server(plot: str) -> None:
+def run_server() -> None:
     overrides: list[str] = []
     cfg = compose(config_name="config", overrides=overrides)
-    model = mlflow.pyfunc.load_model(cfg.mlflow_model_path)
-    print(" ".join(model.predict([plot])))
+    try:
+        model = mlflow.pyfunc.load_model(cfg.mlflow_model_path)
+    except OSError:
+        print("Run `python commands.py train` first")
+        return
+    while True:
+        print("Summarize the plot:")
+        plot = input()
+        print("Most likely genres:", ", ".join(model.predict([plot])), "\n\n")
 
 
 if __name__ == "__main__":
