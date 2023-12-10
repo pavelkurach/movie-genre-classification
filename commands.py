@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 
 import fire
@@ -11,7 +10,6 @@ from transformers import TrainingArguments
 
 
 def train(cloud: bool = False) -> None:
-    subprocess.Popen("dvc pull", shell=True)
     overrides = ["training_arguments=cloud"] if cloud else []
     cfg = compose(config_name="config", overrides=overrides)
 

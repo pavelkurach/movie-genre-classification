@@ -1,18 +1,19 @@
-import functools
-
 from datasets import DatasetDict, formatting
-from transformers import AutoTokenizer, BatchEncoding, PreTrainedTokenizerFast
+
+from .genre_encoder import GenreEncoder
 
 
 class Preprocessor:
     def __init__(
         self,
-        tokenizer: AutoTokenizer,
+        n_most_freq_genres: int = 15,
     ):
-        self.tokenizer = tokenizer
+        self.genre_encoder = GenreEncoder(n_most_freq_genres)
 
-    def transform(self, split_dataset: DatasetDict) -> DatasetDict:
-        return (
+    def transform(
+        self, split_dataset: DatasetDict
+    ) -> tuple[DatasetDict, dict[int, str], dict[str, int]]:
+        dataset_with_genres_split = (
             split_dataset.map(
                 self._lower_and_strip_plot, desc="Preprocess plot"
             )
@@ -21,10 +22,12 @@ class Preprocessor:
                 desc="Split genres str",
             )
             .remove_columns(["genre"])
-            .map(
-                functools.partial(self._tokenize, tokenizer=self.tokenizer),
-                desc="Tokenize",
-            )
+        )
+        self.genre_encoder.fit(dataset_with_genres_split["train"])
+        return (
+            self.genre_encoder.transform(dataset_with_genres_split),
+            self.genre_encoder.get_id2label(),
+            self.genre_encoder.get_label2id(),
         )
 
     @staticmethod
@@ -45,10 +48,3 @@ class Preprocessor:
             genres = " ".join(genres.split(delimeter))
         genres = list(map(lambda s: s.strip(), genres.split()))
         return {"genres": genres}
-
-    @staticmethod
-    def _tokenize(
-        movies: formatting.formatting.LazyRow,
-        tokenizer: PreTrainedTokenizerFast,
-    ) -> BatchEncoding:
-        return tokenizer(movies["plot"], truncation=True, max_length=512)

@@ -17,7 +17,6 @@ from transformers import (
     pipeline,
 )
 
-from .genre_encoder import GenreEncoder
 from .lib.metrics.multi_label_metrics import compute_metrics
 from .preprocessor import Preprocessor
 
@@ -30,15 +29,15 @@ class GenreClassifier:
         self,
         pretrained_model_name: str,
         path_to_model: str,
-        n_most_frequent_genres: int,
+        n_most_freq_genres: int = 15,
     ):
         self.pretrained_model_name = pretrained_model_name
         self._tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name)
-        self._preprocessor = Preprocessor(self._tokenizer)
-        self._genre_encoder = GenreEncoder(n_most_frequent_genres)
+        self._preprocessor = Preprocessor(n_most_freq_genres)
         self._model: PreTrainedModel | None = None
         self.path_to_model = path_to_model
         self._trainer: Trainer | None = None
+        self._num_labels = n_most_freq_genres
 
     def train(
         self,
@@ -48,18 +47,19 @@ class GenreClassifier:
         limit_train_dataset: float = 1.0,
         limit_test_dataset: float = 1.0,
     ) -> None:
-        preprocessed_dataset = self._preprocessor.transform(split_dataset)
-
-        self._genre_encoder.fit(preprocessed_dataset["train"])
-        encoded_dataset = self._genre_encoder.transform(preprocessed_dataset)
+        (
+            preprocessed_dataset,
+            id2label,
+            label2id,
+        ) = self._preprocessor.transform(split_dataset)
 
         if self._model is None:
             self._model = AutoModelForSequenceClassification.from_pretrained(
                 self.pretrained_model_name,
                 problem_type="multi_label_classification",
-                num_labels=self._genre_encoder.get_num_labels(),
-                id2label=self._genre_encoder.get_id2label(),
-                label2id=self._genre_encoder.get_label2id(),
+                num_labels=self._num_labels,
+                id2label=id2label,
+                label2id=label2id,
             )
 
         if train_classifier_layer_only:
@@ -67,20 +67,23 @@ class GenreClassifier:
                 if "classifier" not in name:
                     param.requires_grad = False
 
+        preprocessed_dataset = preprocessed_dataset.map(
+            lambda example: self._tokenizer(example["plot"], truncation=True),
+            desc="Tokenize",
+        )
         data_collator = DataCollatorWithPadding(tokenizer=self._tokenizer)
-        train_len = len(encoded_dataset["train"])
-        test_len = len(encoded_dataset["test"])
+        train_len = len(preprocessed_dataset["train"])
+        test_len = len(preprocessed_dataset["test"])
 
         self._trainer = Trainer(
             self._model,
             args,
-            train_dataset=encoded_dataset["train"].select(
+            train_dataset=preprocessed_dataset["train"].select(
                 range(int(train_len * limit_train_dataset))
             ),
-            eval_dataset=encoded_dataset["test"].select(
+            eval_dataset=preprocessed_dataset["test"].select(
                 range(int(test_len * limit_test_dataset))
             ),
-            tokenizer=self._tokenizer,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
         )

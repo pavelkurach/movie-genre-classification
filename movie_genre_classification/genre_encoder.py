@@ -12,11 +12,11 @@ class GenreEncoder:
         self.n_most_freq_genres = n_most_freq_genres
         self._most_freq_genres: list[str] | None = None
 
-    def transform(self, preprocessed_dataset: DatasetDict) -> DatasetDict:
+    def transform(self, dataset_with_genres_split: DatasetDict) -> DatasetDict:
         if self._most_freq_genres is None:
             raise RuntimeError("Run .fit() first.")
         return (
-            preprocessed_dataset.map(
+            dataset_with_genres_split.map(
                 functools.partial(
                     self._clean_genres,
                     most_freq_genres=self._most_freq_genres,
@@ -33,9 +33,9 @@ class GenreEncoder:
             )
         )
 
-    def fit(self, preprocessed_train_dataset: Dataset) -> None:
+    def fit(self, dataset_with_genres_split: Dataset) -> None:
         self._most_freq_genres = self._get_most_frequent_genres(
-            preprocessed_train_dataset
+            dataset_with_genres_split
         )
 
     def get_num_labels(self) -> int:
