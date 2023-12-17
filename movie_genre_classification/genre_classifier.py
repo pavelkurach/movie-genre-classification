@@ -1,10 +1,9 @@
 import os
-import typing
-from typing import Any, List
+from typing import Any
 
-import mlflow
 from datasets import DatasetDict
 from optimum.onnxruntime import ORTModelForSequenceClassification
+from psutil import cpu_count
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -21,7 +20,10 @@ from .lib.metrics.multi_label_metrics import compute_metrics
 from .preprocessor import Preprocessor
 
 
+os.environ["OMP_NUM_THREADS"] = f"{cpu_count() - 1}"
+os.environ["OMP_WAIT_POLICY"] = "ACTIVE"
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "true"
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
 class GenreClassifier:
@@ -120,14 +122,14 @@ class GenreClassifier:
             raise ValueError(
                 "Model accept plots not longer than 512 characters"
             )
-        self.static_predict(
+        self._static_predict(
             plot,
             self._model,
             self._tokenizer,
         )
 
     @staticmethod
-    def static_predict(
+    def _static_predict(
         plot: str, model: Any, tokenizer: PreTrainedTokenizerFast
     ) -> Any:
         classifier = pipeline(
@@ -159,21 +161,3 @@ class GenreClassifier:
                 genres.append(pred["label"])
 
         return genres
-
-
-class GenreClassifierOnnx(mlflow.pyfunc.PythonModel):
-    def __init__(self, path: str):
-        super().__init__()
-        self._model = ORTModelForSequenceClassification.from_pretrained(path)
-        self._tokenizer = AutoTokenizer.from_pretrained(path)
-
-    def load_context(
-        self, context: mlflow.pyfunc.model.PythonModelContext
-    ) -> None:
-        print(context.artifacts)
-
-    @typing.no_type_check
-    def predict(self, model_inputs: List[str]) -> List[str]:
-        return GenreClassifier.static_predict(
-            model_inputs[0], self._model, self._tokenizer
-        )

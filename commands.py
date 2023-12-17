@@ -2,11 +2,14 @@ from pathlib import Path
 
 import fire
 import mlflow
+import numpy as np
+import onnx
+import onnxruntime as ort
 from hydra import compose, initialize
 from movie_genre_classification.data_loader import MoviePlotsDataset
 from movie_genre_classification.genre_classifier import GenreClassifier
 from omegaconf import OmegaConf
-from transformers import TrainingArguments
+from transformers import AutoTokenizer, TrainingArguments
 
 
 def train(cloud: bool = False) -> None:
@@ -44,14 +47,10 @@ def train(cloud: bool = False) -> None:
             cfg.training_arguments.limit_test_dataset,
         )
 
-    # using onnx is required, but it doesn't make sense here
-    path_to_onnx_model = genre_classifier.save_onnx()
+    onnx_model_path = genre_classifier.save_onnx()
 
-    mlflow.pyfunc.save_model(
-        cfg.mlflow_model_path,
-        data_path=path_to_onnx_model,
-        loader_module=cfg.mlflow_loader_path,
-    )
+    onnx_model = onnx.load_model(str(onnx_model_path))
+    mlflow.onnx.save_model(onnx_model, cfg.mlflow_model_path)
 
 
 def predict(plot: str) -> None:
@@ -74,14 +73,20 @@ def run_server() -> None:
     overrides: list[str] = []
     cfg = compose(config_name="config", overrides=overrides)
     try:
-        model = mlflow.pyfunc.load_model(cfg.mlflow_model_path)
+        model = mlflow.onnx.load_model(cfg.mlflow_model_path)
     except OSError:
         print("Run `python commands.py train` first")
         return
-    while True:
-        print("Summarize the plot:")
-        plot = input()
-        print("Most likely genres:", ", ".join(model.predict([plot])), "\n\n")
+    tokenizer = AutoTokenizer.from_pretrained(cfg.pretrained_model_name)
+    ort_session = ort.InferenceSession(model.SerializeToString())
+    print("Summarize the plot:")
+    plot = input()
+
+    def prepare_for_session(input_to_tokenize: str) -> dict[str, np.ndarray]:
+        tokens = tokenizer(input_to_tokenize, return_tensors="pt")
+        return {k: v.cpu().detach().numpy() for k, v in tokens.items()}
+
+    print(ort_session.run(None, prepare_for_session(plot)))
 
 
 if __name__ == "__main__":
