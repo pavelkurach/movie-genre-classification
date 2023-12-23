@@ -42,9 +42,9 @@ class Preprocessor:
     def _split_genres(
         movie: formatting.formatting.LazyRow,
     ) -> dict[str, list[str]]:
-        delimeters = ["/", ",", "-", "[", "]"]
+        delimiters = ["/", ",", "-", "[", "]"]
         genres = movie["genre"]
-        for delimeter in delimeters:
-            genres = " ".join(genres.split(delimeter))
+        for delimiter in delimiters:
+            genres = " ".join(genres.split(delimiter))
         genres = list(map(lambda s: s.strip(), genres.split()))
         return {"genres": genres}
