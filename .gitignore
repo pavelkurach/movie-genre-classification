@@ -8,3 +8,5 @@
 *.csv
 /mlruns/
 .DS_Store
+/mlflow-tracking-server/mlruns/
+/mlflow-tracking-server/postgres-data/

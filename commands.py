@@ -12,7 +12,7 @@ from omegaconf import OmegaConf
 from transformers import AutoTokenizer, TrainingArguments
 
 
-def train(cloud: bool = False) -> None:
+def train(cloud: bool = False, log_model: bool = False) -> None:
     overrides = ["training_arguments=cloud"] if cloud else []
     cfg = compose(config_name="config", overrides=overrides)
 
@@ -33,7 +33,7 @@ def train(cloud: bool = False) -> None:
     )
 
     experiment = mlflow.set_experiment(
-        experiment_name="Movie genre classification (wiki)"
+        experiment_name=cfg.mlflow_experiment_name,
     )
     with mlflow.start_run(experiment_id=experiment.experiment_id):
         mlflow.log_dict(
@@ -46,11 +46,12 @@ def train(cloud: bool = False) -> None:
             cfg.training_arguments.limit_train_dataset,
             cfg.training_arguments.limit_test_dataset,
         )
-
-    onnx_model_path = genre_classifier.save_onnx()
-
-    onnx_model = onnx.load_model(str(onnx_model_path))
-    mlflow.onnx.save_model(onnx_model, cfg.mlflow_model_path)
+        onnx_model_path = genre_classifier.save_onnx()
+        onnx_model = onnx.load_model(str(f"{onnx_model_path}/model.onnx"))
+        mlflow.onnx.log_model(onnx_model, cfg.mlflow_model_path)
+        mlflow.log_artifact(
+            f"{onnx_model_path}/config.json", cfg.mlflow_model_path
+        )
 
 
 def predict(plot: str) -> None:
@@ -69,14 +70,11 @@ def predict(plot: str) -> None:
     print(genre_classifier.predict(plot))
 
 
-def run_server() -> None:
+def run_server(run_id: str) -> None:
     overrides: list[str] = []
     cfg = compose(config_name="config", overrides=overrides)
-    try:
-        model = mlflow.onnx.load_model(cfg.mlflow_model_path)
-    except OSError:
-        print("Run `python commands.py train` first")
-        return
+    model_uri = "runs:/{run_id}/model"
+    model = mlflow.onnx.load_model(model_uri)
     tokenizer = AutoTokenizer.from_pretrained(cfg.pretrained_model_name)
     ort_session = ort.InferenceSession(model.SerializeToString())
     print("Summarize the plot:")
@@ -91,5 +89,4 @@ def run_server() -> None:
 
 if __name__ == "__main__":
     initialize(version_base=None, config_path="conf")
-    experiment_name = "Movie genre classification (wiki)"
     fire.Fire()
