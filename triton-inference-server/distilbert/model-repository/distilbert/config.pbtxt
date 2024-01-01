@@ -1,0 +1,32 @@
+name: "distilbert"
+platform: "onnxruntime_onnx"
+max_batch_size: 0
+
+
+input [
+    {
+        name: "INPUT_IDS"
+        data_type: TYPE_INT64
+        dims: [ 512 ]
+    },
+    {
+        name: "ATTENTION_MASK"
+        data_type: TYPE_INT64
+        dims: [ 512 ]
+    }
+]
+
+output [
+    {
+        name: "LOGITS"
+        data_type: TYPE_FP32
+        dims: [ 10 ]
+    }
+]
+
+instance_group [
+    {
+        count: 1
+        kind: KIND_CPU
+    }
+]

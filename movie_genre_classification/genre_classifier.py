@@ -113,6 +113,7 @@ class GenreClassifier:
             f"{self.path_to_model}/best", export=True
         )
         onnx_model.save_pretrained(f"{self.path_to_model}/onnx")
+        self._tokenizer.save_pretrained(f"{self.path_to_model}/onnx/tokenizer")
         return f"{self.path_to_model}/onnx"
 
     def predict(self, plot: str) -> Any:

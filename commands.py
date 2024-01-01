@@ -52,6 +52,10 @@ def train(cloud: bool = False, log_model: bool = False) -> None:
         mlflow.log_artifact(
             f"{onnx_model_path}/config.json", cfg.mlflow_model_path
         )
+        mlflow.log_artifact(
+            f"{onnx_model_path}/tokenizer",
+            f"{cfg.mlflow_model_path}/tokenizer",
+        )
 
 
 def predict(plot: str) -> None:
@@ -70,19 +74,30 @@ def predict(plot: str) -> None:
     print(genre_classifier.predict(plot))
 
 
-def run_server(run_id: str) -> None:
+def run_server() -> None:
     overrides: list[str] = []
     cfg = compose(config_name="config", overrides=overrides)
-    model_uri = "runs:/{run_id}/model"
-    model = mlflow.onnx.load_model(model_uri)
-    tokenizer = AutoTokenizer.from_pretrained(cfg.pretrained_model_name)
-    ort_session = ort.InferenceSession(model.SerializeToString())
+    path_to_model = path_to_model = str(
+        (
+            Path(".") / "models" / f"{cfg.pretrained_model_name}-finetuned"
+        ).resolve()
+        / "onnx"
+    )
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        path_to_model + "/tokenizer/", local_files_only=True
+    )
+
+    ort_session = ort.InferenceSession(path_to_model + "/model.onnx")
     print("Summarize the plot:")
     plot = input()
 
     def prepare_for_session(input_to_tokenize: str) -> dict[str, np.ndarray]:
-        tokens = tokenizer(input_to_tokenize, return_tensors="pt")
-        return {k: v.cpu().detach().numpy() for k, v in tokens.items()}
+        tokens = tokenizer(input_to_tokenize, return_tensors="np")
+        return {
+            "input_ids": tokens["input_ids"],
+            "attention_mask": tokens["attention_mask"],
+        }
 
     print(ort_session.run(None, prepare_for_session(plot)))
 

@@ -10,3 +10,5 @@
 .DS_Store
 /mlflow-tracking-server/mlruns/
 /mlflow-tracking-server/postgres-data/
+/triton-inference-server/*/assets/
+*.onnx

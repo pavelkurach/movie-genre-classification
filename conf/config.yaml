@@ -3,6 +3,7 @@ defaults:
   - _self_
 
 pretrained_model_name: distilbert-base-uncased
+short_model_name: distilbert
 num_genres: 10
 
 seed: 42
