@@ -15,7 +15,7 @@ class TritonPythonModel:
         encoded = self.tokenizer(
             texts,
             padding="max_length",
-            max_length=16,
+            max_length=512,
             truncation=True,
         )
         input_ids = np.array(encoded["input_ids"], dtype=np.int64)
@@ -26,14 +26,14 @@ class TritonPythonModel:
         responses = []
         for request in requests:
             texts = pb_utils.get_input_tensor_by_name(
-                request, "TEXTS"
+                request, "texts"
             ).as_numpy()
             texts = [el.decode() for el in texts]
 
             tokens, mask = self.tokenize(texts)
 
-            output_tensor_tokens = pb_utils.Tensor("INPUT_IDS", tokens)
-            output_tensor_mask = pb_utils.Tensor("ATTENTION_MASK", mask)
+            output_tensor_tokens = pb_utils.Tensor("input_ids", tokens)
+            output_tensor_mask = pb_utils.Tensor("attention_mask", mask)
 
             inference_response = pb_utils.InferenceResponse(
                 output_tensors=[output_tensor_tokens, output_tensor_mask]

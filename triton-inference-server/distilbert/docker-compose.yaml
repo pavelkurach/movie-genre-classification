@@ -1,9 +1,9 @@
 version: '3.8'
 services:
-  triton_hf_transformer_example:
+  triton_hf:
     command: ["--model-repository=/models", "--log-info=1"]
     build: .
-    shm_size: '64gb'
+    shm_size: '16gb'
     restart: unless-stopped
     ports:
       - 8500:8000
@@ -11,7 +11,7 @@ services:
       - 8502:8002
     volumes:
       - ./:/workspace
-      - ./model_repository:/models
+      - ./model-repository:/models
       - ./assets:/assets
     environment:
       - LC_ALL=C.UTF-8
